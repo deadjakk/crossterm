@@ -266,6 +266,40 @@ pub enum ClearType {
     UntilNewLine,
 }
 
+/// A command that enables scrolling for the entire screen.  
+/// This would likely only be run after SetScrollingRegion has been run to
+/// put re-enable terminal scrolling for the entire screen.  
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SetScrollingAll();
+
+impl Command for SetScrollingAll {
+    fn write_ansi(&self, f: &mut impl fmt::Write) -> fmt::Result {
+        write!(f, csi!("r"))
+    }
+
+    #[cfg(windows)]
+    fn execute_winapi(&self) -> Result<()> {
+        sys::move_to(self.0, self.1)
+    }
+}
+
+
+/// A command that restricts terminal output scrolling within the given starting and ending rows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SetScrollingRegion(pub u16, pub u16);
+
+impl Command for SetScrollingRegion {
+    fn write_ansi(&self, f: &mut impl fmt::Write) -> fmt::Result {
+        write!(f, csi!("{};{}r"), self.0, self.1)
+    }
+
+    #[cfg(windows)]
+    fn execute_winapi(&self) -> Result<()> {
+        sys::move_to(self.0, self.1)
+    }
+}
+
+
 /// A command that scrolls the terminal screen a given number of rows up.
 ///
 /// # Notes
