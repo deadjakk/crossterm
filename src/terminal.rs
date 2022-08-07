@@ -92,11 +92,29 @@ use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use winapi::um::wincon::ENABLE_WRAP_AT_EOL_OUTPUT;
 
+
+
 #[doc(no_inline)]
 use crate::Command;
 use crate::{csi, impl_display, Result};
 
 pub(crate) mod sys;
+
+#[derive(Debug)]
+pub enum CrosstermError {
+  UnimplementedInWindows,
+}
+
+impl std::error::Error for CrosstermError {}
+
+impl fmt::Display for CrosstermError {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    match self {
+      CrosstermError::UnimplementedInWindows => write!(f, 
+          "This command is unimplemented for Windows"),
+    }
+  }
+}
 
 /// Tells whether the raw mode is enabled.
 ///
@@ -278,8 +296,8 @@ impl Command for SetScrollingAll {
     }
 
     #[cfg(windows)]
-    fn execute_winapi(&self) -> Result<()> {
-        sys::move_to(self.0, self.1)
+    fn execute_winapi(&self) -> Result<(), CrosstermError> {
+        Err(CrosstermError::UnimplementedInWindows)
     }
 }
 
@@ -294,8 +312,8 @@ impl Command for SetScrollingRegion {
     }
 
     #[cfg(windows)]
-    fn execute_winapi(&self) -> Result<()> {
-        sys::move_to(self.0, self.1)
+    fn execute_winapi(&self) -> Result<(), CrosstermError> {
+        Err(CrosstermError::UnimplementedInWindows)
     }
 }
 
